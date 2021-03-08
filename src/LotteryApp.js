@@ -1,10 +1,10 @@
+// noprotect
 import React, { Component, useState, useEffect } from "react";
 import "./LotteryApp.css";
 import { abi, address } from "./etherLottery";
 import { ethers } from "ethers";
 
 class LotteryApp extends Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -12,38 +12,44 @@ class LotteryApp extends Component {
       provider: null,
       _tokenContract: null,
       manager: "",
+      isManager: "No",
       contractBalance: 0,
       playersCount: 0,
       message: "Message Place Holder",
     };
-   
 
     this.findTotalPlayersCount = this.findTotalPlayersCount.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
+    this.pickWinner = this.pickWinner.bind(this);
+    this.findManager = this.findManager.bind(this);
   }
-  
+
   componentDidMount() {
     if (typeof window.ethereum !== "undefined") {
       window.ethereum.enable();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const sig = provider.getSigner(0);
+      const sig = provider.getSigner();
       this.setState({ provider: provider, signer: sig });
       //this.provider = new ethers.providers.JsonRpcProvider("http://localhost:8500")
 
       this.setState({
-        _tokenContract: new ethers.Contract(address, abi, this.provider),
+        _tokenContract: new ethers.Contract(address, abi, sig),
       });
     }
   }
+  setup() {}
   render() {
     return (
       <div>
         <h2>Lottery Contract</h2>
-        <h3>Find total players entered: 
+        <h3>
+          Find total players entered:
           <button onClick={this.findTotalPlayersCount}>Find</button>
-          {this.state.playersCount}</h3>
+          {this.state.playersCount}
+        </h3>
         <p>
-          This contract is managed by {this.state.manager}. There are currently{" "}
-          {this.state.playersCount} people in the pool, competing to win{" "}
+          This contract is managed by {" "} {this.state.manager}. There are currently {" "}
+          {this.state.playersCount} people in the pool, competing to win {" "}
           {this.state.contractBalance} ether!
         </p>
         <hr />
@@ -54,7 +60,8 @@ class LotteryApp extends Component {
           </div>
           <button>Enter</button>
         </form>
-        Now the {this.isManager()}
+        <button onClick={this.findManager}>Am I a manager</button>
+        {this.state.isManager}
         {
           <>
             <hr />
@@ -70,11 +77,15 @@ class LotteryApp extends Component {
 
   async findTotalPlayersCount(event) {
     event.preventDefault();
-    debugger
-    const count = await this.state._tokenContract.totalPlayersEntered.call();
-    this.setState({playersCount: count}, ()=> {
-      console.log("count: " + count);
-    })
+    const count = await this.state._tokenContract.totalPlayersEntered();
+    console.log("json count: " + JSON.stringify(count));
+    var c = count.toNumber();
+    this.setState({ playersCount: c }, () => {
+      console.log("count: " + this.state.playersCount);
+    });
+
+    const contractBalance = await this.state._tokenContract.contractBalance();
+    this.setState({contractBalance: contractBalance.toNumber()});
   }
 
   async onSubmit(event) {
@@ -96,26 +107,27 @@ class LotteryApp extends Component {
     event.preventDefault();
 
     this.setState({ message: "Waiting for the transaction to be mined..." });
-    debugger
-    await this.state._tokenContract.chooseWinner().then((result) => {
-      console.log("result: " + result);
-    });
-    debugger
+    debugger;
+    await this.state._tokenContract.chooseWinner();
+    debugger;
     this.setState({ message: "A winner has been picked!" });
   }
 
-  isManager() {
-    if (this.state.signer) {
-      //this.findManager();
-      return this.state.signer.getAddress() === this.state.manager;
-    } else return false;
-  }
-
   async findManager() {
-    debugger;
     const mngr = await this.state._tokenContract.manager();
+    console.log("mngr " + mngr);
+    const add = await this.state.signer.getAddress();
+    console.log("add" + add);
     this.setState({ manager: mngr }, () => {
       console.log("manager: " + this.state.manager);
+
+      if (add === this.state.manager) {
+        console.log("i am manager");
+        this.setState({ isManager: "true" });
+      } else {
+        console.log("i am not manager");
+        this.setState({ isManager: "false" });
+      }
     });
   }
 }
