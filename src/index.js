@@ -3,11 +3,12 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import LotteryApp from './LotteryApp';
+import Contract from './Contract';
 import reportWebVitals from './reportWebVitals';
 
 ReactDOM.render(
   <React.StrictMode>
-    <LotteryApp />
+    <Contract />
   </React.StrictMode>,
   document.getElementById('root')
 );

@@ -1,41 +1,30 @@
 // noprotect
 import React, { Component} from "react";
 import "./LotteryApp.css";
-import { abi, address } from "./etherLottery";
 import { ethers } from "ethers";
 
-class LotteryApp extends Component {
+class LotteryApp_1 extends Component {
+  _tokenContract;
+    sig;
   constructor(props) {
     super(props);
+    this._tokenContract = props.cont;
+    this.sig = props.sign;
     this.state = {
-      signer: null,
-     
-      _tokenContract: null,
+      _tokenContract: this._tokenContract,
+      signer: this.sig,
       manager: "",
       isManager: "No",
       contractBalance: 0,
       playersCount: 0,
       message: "Message Place Holder",
     };
-
+    debugger
+  
     this.findTotalPlayersCount = this.findTotalPlayersCount.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
     this.pickWinner = this.pickWinner.bind(this);
     this.findManager = this.findManager.bind(this);
-  }
-
-  componentDidMount() {
-    if (typeof window.ethereum !== "undefined") {
-      window.ethereum.enable();
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const sig = provider.getSigner();
-      this.setState({ signer: sig });
-      //this.provider = new ethers.providers.JsonRpcProvider("http://localhost:8500")
-
-      this.setState({
-        _tokenContract: new ethers.Contract(address, abi, sig),
-      });
-    }
   }
   
   render() {
@@ -77,6 +66,7 @@ class LotteryApp extends Component {
 
   async findTotalPlayersCount(event) {
     event.preventDefault();
+    debugger
     const count = await this.state._tokenContract.totalPlayersEntered();
     console.log("json count: " + JSON.stringify(count));
     var c = count.toNumber();
@@ -208,4 +198,4 @@ function App() {
 }
 */
 
-export default LotteryApp;
+export default LotteryApp_1;
